@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Room {{ room.room_number }}{% endblock %}
+{% block breadcrumb %}<a href="{% url 'rooms:index' %}">Rooms</a><span class="sep">/</span><span class="current">Room {{ room.room_number }}</span>{% endblock %}
+
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;">
+  <div class="page-title">Room {{ room.room_number }}</div>
+  <div style="display:flex;gap:10px;">
+    <a href="{% url 'rooms:edit' room.pk %}" class="btn btn-outline">✏️ Edit</a>
+    <a href="{% url 'rooms:delete' room.pk %}" class="btn btn-danger">🗑 Delete</a>
+  </div>
+</div>
+
+<div class="detail-hero">
+  <div class="detail-avatar" style="font-size:32px;">🚪</div>
+  <div class="detail-meta">
+    <div class="detail-name">Room {{ room.room_number }}</div>
+    <div class="detail-subtitle">{{ room.get_room_type_display }} · {{ room.get_floor_display }}</div>
+    <div class="detail-tags">
+      {% if not room.is_active %}<span class="badge badge-muted">Inactive</span>
+      {% elif room.is_full %}<span class="badge badge-red">Full</span>
+      {% else %}<span class="badge badge-green">Available</span>{% endif %}
+      <span class="badge badge-blue">{{ room.occupancy_status }} Occupied</span>
+    </div>
+  </div>
+</div>
+
+<div class="detail-info-grid">
+  <div class="info-block">
+    <div class="info-label">Room Type</div>
+    <div class="info-value">{{ room.get_room_type_display }}</div>
+  </div>
+  <div class="info-block">
+    <div class="info-label">Floor</div>
+    <div class="info-value">{{ room.get_floor_display }}</div>
+  </div>
+  <div class="info-block">
+    <div class="info-label">Capacity</div>
+    <div class="info-value text-mono">{{ room.capacity }} beds</div>
+  </div>
+  <div class="info-block">
+    <div class="info-label">Available Beds</div>
+    <div class="info-value text-mono {% if room.get_available_beds == 0 %}text-red{% else %}text-green{% endif %}">
+      {{ room.get_available_beds }} free
+    </div>
+  </div>
+  <div class="info-block">
+    <div class="info-label">Monthly Rent</div>
+    <div class="info-value text-mono">PKR {{ room.monthly_rent }}</div>
+  </div>
+  <div class="info-block">
+    <div class="info-label">Amenities</div>
+    <div class="info-value" style="font-size:13px;">{{ room.amenities|default:"—" }}</div>
+  </div>
+</div>
+
+<!-- Assigned Students -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">👤 Assigned Students</div>
+    <span style="font-family:var(--font-mono);font-size:12px;color:var(--text-muted);">{{ students|length }} / {{ room.capacity }}</span>
+  </div>
+  {% if students %}
+  <div class="table-wrapper">
+    <table class="hms-table">
+      <thead><tr><th>Name</th><th>Roll No.</th><th>Department</th><th>Phone</th><th></th></tr></thead>
+      <tbody>
+        {% for s in students %}
+        <tr>
+          <td>
+            <div class="td-name">
+              <div class="td-avatar">{{ s.user.first_name|first|upper|default:s.user.username|first|upper }}</div>
+              <span>{{ s.user.get_full_name|default:s.user.username }}</span>
+            </div>
+          </td>
+          <td class="td-mono">{{ s.roll_number }}</td>
+          <td>{{ s.get_department_display }}</td>
+          <td class="td-mono">{{ s.phone_number }}</td>
+          <td><a href="{% url 'students:detail' s.pk %}" class="btn btn-outline btn-sm">View →</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state" style="padding:28px;">
+    <p>No students assigned to this room</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

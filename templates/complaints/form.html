@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}{{ action }} Complaint{% endblock %}
+{% block breadcrumb %}<a href="{% url 'complaints:index' %}">Complaints</a><span class="sep">/</span><span class="current">{{ action }}</span>{% endblock %}
+
+{% block content %}
+<div style="max-width:700px;">
+  <div style="margin-bottom:24px;">
+    <div class="page-title">{{ action }} Complaint</div>
+    <div style="color:var(--text-muted);font-size:13px;margin-top:4px;">
+      {% if action == 'Add' %}File a new complaint or maintenance request{% else %}Update complaint details or add admin response{% endif %}
+    </div>
+  </div>
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <!-- Complaint Info -->
+    <div class="card" style="margin-bottom:20px;">
+      <div class="card-header"><div class="card-title">📋 Complaint Details</div></div>
+      <div class="card-body">
+        <div class="form-section-title">Filed By</div>
+        <div class="form-group">
+          <label class="form-label">Student <span class="required">*</span></label>
+          <select name="student" class="form-control" required>
+            <option value="">— Select Student —</option>
+            {% for s in students %}
+              <option value="{{ s.pk }}" {% if complaint.student.pk == s.pk %}selected{% endif %}>
+                {{ s.roll_number }} — {{ s.user.get_full_name|default:s.user.username }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-section-title" style="margin-top:8px;">Classification</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Category <span class="required">*</span></label>
+            <select name="category" class="form-control">
+              <option value="MAINTENANCE" {% if complaint.category == 'MAINTENANCE' %}selected{% endif %}>Room Maintenance</option>
+              <option value="PLUMBING"    {% if complaint.category == 'PLUMBING'    %}selected{% endif %}>Plumbing</option>
+              <option value="ELECTRICAL"  {% if complaint.category == 'ELECTRICAL'  %}selected{% endif %}>Electrical</option>
+              <option value="FOOD"        {% if complaint.category == 'FOOD'        %}selected{% endif %}>Food / Mess</option>
+              <option value="CLEANLINESS" {% if complaint.category == 'CLEANLINESS' %}selected{% endif %}>Cleanliness</option>
+              <option value="SECURITY"    {% if complaint.category == 'SECURITY'    %}selected{% endif %}>Security</option>
+              <option value="NOISE"       {% if complaint.category == 'NOISE'       %}selected{% endif %}>Noise Complaint</option>
+              <option value="INTERNET"    {% if complaint.category == 'INTERNET'    %}selected{% endif %}>Internet / WiFi</option>
+              <option value="OTHER"       {% if complaint.category == 'OTHER' or not complaint %}selected{% endif %}>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Priority</label>
+            <select name="priority" class="form-control">
+              <option value="LOW"    {% if complaint.priority == 'LOW'    %}selected{% endif %}>Low</option>
+              <option value="MEDIUM" {% if complaint.priority == 'MEDIUM' or not complaint %}selected{% endif %}>Medium</option>
+              <option value="HIGH"   {% if complaint.priority == 'HIGH'   %}selected{% endif %}>High</option>
+              <option value="URGENT" {% if complaint.priority == 'URGENT' %}selected{% endif %}>🚨 Urgent</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-section-title" style="margin-top:8px;">Description</div>
+        <div class="form-group">
+          <label class="form-label">Title <span class="required">*</span></label>
+          <input type="text" name="title" class="form-control" required
+            placeholder="Brief summary of the issue…"
+            value="{{ complaint.title|default:'' }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Complaint Details <span class="required">*</span></label>
+          <textarea name="complaint_text" class="form-control" rows="6" required
+            placeholder="Describe the issue in detail — what happened, where, and when…">{{ complaint.complaint_text|default:'' }}</textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Attachment (Photo/Document)</label>
+          {% if complaint.attachment %}
+            <div style="margin-bottom:8px;">
+              <a href="{{ complaint.attachment.url }}" target="_blank" class="btn btn-outline btn-sm">📎 Current Attachment</a>
+            </div>
+          {% endif %}
+          <input type="file" name="attachment" class="form-control" accept="image/*,.pdf" style="padding:6px;">
+          <span class="form-hint">Optional: attach a photo of the issue</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin Response Section (only shown when editing) -->
+    {% if action == 'Edit' %}
+    <div class="card" style="margin-bottom:20px;">
+      <div class="card-header"><div class="card-title">💬 Admin Response</div></div>
+      <div class="card-body">
+        <div class="form-section-title">Update Status</div>
+        <div class="form-group">
+          <label class="form-label">Complaint Status</label>
+          <select name="status" class="form-control">
+            <option value="PENDING"     {% if complaint.status == 'PENDING'      %}selected{% endif %}>Pending</option>
+            <option value="REVIEWED"    {% if complaint.status == 'REVIEWED'     %}selected{% endif %}>Under Review</option>
+            <option value="IN_PROGRESS" {% if complaint.status == 'IN_PROGRESS'  %}selected{% endif %}>In Progress</option>
+            <option value="RESOLVED"    {% if complaint.status == 'RESOLVED'     %}selected{% endif %}>Resolved</option>
+            <option value="REJECTED"    {% if complaint.status == 'REJECTED'     %}selected{% endif %}>Rejected</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Admin Response / Notes</label>
+          <textarea name="admin_response" class="form-control" rows="5"
+            placeholder="Write your response, resolution steps, or reason for rejection…">{{ complaint.admin_response|default:'' }}</textarea>
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <!-- Hidden status field for new complaints -->
+    <input type="hidden" name="status" value="PENDING">
+    {% endif %}
+
+    <div style="display:flex;gap:10px;">
+      <button type="submit" class="btn btn-primary">
+        {% if action == 'Add' %}✓ File Complaint{% else %}✓ Save Changes{% endif %}
+      </button>
+      <a href="{% url 'complaints:index' %}" class="btn btn-outline">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Delete Room{% endblock %}
+{% block breadcrumb %}<a href="{% url 'rooms:index' %}">Rooms</a><span class="sep">/</span><span class="current">Delete</span>{% endblock %}
+{% block content %}
+<div style="max-width:480px;margin:40px auto;">
+  <div class="danger-zone">
+    <div style="font-size:40px;margin-bottom:12px;">⚠️</div>
+    <h3>Delete Room {{ room.room_number }}</h3>
+    <p>This will remove Room <strong style="color:var(--text-primary);">{{ room.room_number }}</strong>. Any students assigned to this room will have their room set to unassigned. This cannot be undone.</p>
+    <div style="display:flex;gap:10px;justify-content:center;">
+      <form method="post">{% csrf_token %}<button type="submit" class="btn btn-danger">Yes, Delete Room</button></form>
+      <a href="{% url 'rooms:index' %}" class="btn btn-outline">Cancel</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

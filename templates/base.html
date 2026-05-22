@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}HMS{% endblock %} — Hostel Management System</title>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<div class="hms-layout">
+
+  <!-- Sidebar Overlay (mobile) -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- ── SIDEBAR ────────────────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar">
+
+    <a href="{% url 'dashboard:index' %}" class="sidebar-brand">
+      <div class="sidebar-brand-icon">🏠</div>
+      <div class="sidebar-brand-text">
+        <span class="sidebar-brand-name">HMS Portal</span>
+        <span class="sidebar-brand-sub">v1.0.0</span>
+      </div>
+    </a>
+
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Overview</div>
+      <a href="{% url 'dashboard:index' %}" class="nav-item">
+        <span class="nav-item-icon">⬛</span> Dashboard
+      </a>
+
+      <div class="sidebar-section-label">Management</div>
+      <a href="{% url 'students:index' %}" class="nav-item">
+        <span class="nav-item-icon">👤</span> Students
+      </a>
+      <a href="{% url 'rooms:index' %}" class="nav-item">
+        <span class="nav-item-icon">🚪</span> Rooms
+      </a>
+      <a href="{% url 'fees:index' %}" class="nav-item">
+        <span class="nav-item-icon">💰</span> Fees
+      </a>
+
+      <div class="sidebar-section-label">Operations</div>
+      <a href="{% url 'complaints:index' %}" class="nav-item">
+        <span class="nav-item-icon">📋</span> Complaints
+      </a>
+      <a href="{% url 'visitors:index' %}" class="nav-item">
+        <span class="nav-item-icon">🪪</span> Visitors
+      </a>
+
+      <div class="sidebar-section-label">System</div>
+      {% if user.is_staff %}
+      <a href="/admin/" class="nav-item">
+        <span class="nav-item-icon">⚙️</span> Admin Panel
+      </a>
+      {% endif %}
+      <a href="{% url 'auth:profile' %}" class="nav-item">
+        <span class="nav-item-icon">👁️</span> My Profile
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="{% url 'auth:logout' %}" style="text-decoration:none;">
+        <div class="sidebar-user">
+          <div class="sidebar-avatar">{{ user.username|first|upper }}</div>
+          <div class="sidebar-user-info">
+            <div class="sidebar-username">{{ user.get_full_name|default:user.username }}</div>
+            <div class="sidebar-user-role">{% if user.is_staff %}Admin{% else %}Staff{% endif %} · Logout</div>
+          </div>
+          <span style="color:var(--text-muted);font-size:12px;">→</span>
+        </div>
+      </a>
+    </div>
+  </aside>
+
+  <!-- ── MAIN CONTENT ──────────────────────────────────────── -->
+  <div class="main-content">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+        <div>
+          <div class="topbar-breadcrumb">
+            <a href="{% url 'dashboard:index' %}">HMS</a>
+            <span class="sep">/</span>
+            {% block breadcrumb %}<span class="current">Dashboard</span>{% endblock %}
+          </div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-search">
+          <span class="topbar-search-icon">🔍</span>
+          <input type="text" placeholder="Search…" onkeydown="if(event.key==='Enter'&&this.value){window.location='/students/?q='+encodeURIComponent(this.value)}">
+        </div>
+        <a href="{% url 'complaints:index' %}" class="topbar-btn" data-tooltip="Complaints">
+          📋
+        </a>
+        <a href="{% url 'auth:profile' %}" class="topbar-btn" data-tooltip="Profile">
+          👤
+        </a>
+      </div>
+    </header>
+
+    <!-- Page Body -->
+    <main class="page-body fade-in">
+
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-{% if message.tags == 'error' %}error{% elif message.tags == 'success' %}success{% elif message.tags == 'warning' %}warning{% else %}info{% endif %}">
+            <span>{% if message.tags == 'success' %}✓{% elif message.tags == 'error' %}✕{% else %}ℹ{% endif %}</span>
+            <span>{{ message }}</span>
+            <button class="alert-close" type="button">×</button>
+          </div>
+        {% endfor %}
+      {% endif %}
+
+      {% block content %}{% endblock %}
+    </main>
+  </div><!-- /main-content -->
+
+</div><!-- /hms-layout -->
+
+<script src="{% static 'js/main.js' %}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

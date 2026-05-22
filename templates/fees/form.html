@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}{{ action }} Fee{% endblock %}
+{% block breadcrumb %}<a href="{% url 'fees:index' %}">Fees</a><span class="sep">/</span><span class="current">{{ action }}</span>{% endblock %}
+
+{% block content %}
+<div style="max-width:680px;">
+  <div style="margin-bottom:24px;">
+    <div class="page-title">{{ action }} Fee Record</div>
+    <div style="color:var(--text-muted);font-size:13px;margin-top:4px;">
+      {% if action == 'Add' %}Create a new fee invoice for a student{% else %}Update this fee record{% endif %}
+    </div>
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="card" style="margin-bottom:20px;">
+      <div class="card-header"><div class="card-title">💰 Fee Details</div></div>
+      <div class="card-body">
+
+        <div class="form-section-title">Student & Type</div>
+        <div class="form-grid">
+          <div class="form-group form-full">
+            <label class="form-label">Student <span class="required">*</span></label>
+            <select name="student" class="form-control" required>
+              <option value="">— Select Student —</option>
+              {% for s in students %}
+                <option value="{{ s.pk }}" {% if fee.student.pk == s.pk %}selected{% endif %}>
+                  {{ s.roll_number }} — {{ s.user.get_full_name|default:s.user.username }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Fee Type <span class="required">*</span></label>
+            <select name="fee_type" class="form-control">
+              <option value="ROOM"    {% if fee.fee_type == 'ROOM'    %}selected{% endif %}>Room Rent</option>
+              <option value="FOOD"    {% if fee.fee_type == 'FOOD'    %}selected{% endif %}>Food / Mess</option>
+              <option value="ELEC"    {% if fee.fee_type == 'ELEC'    %}selected{% endif %}>Electricity</option>
+              <option value="WATER"   {% if fee.fee_type == 'WATER'   %}selected{% endif %}>Water</option>
+              <option value="LAUNDRY" {% if fee.fee_type == 'LAUNDRY' %}selected{% endif %}>Laundry</option>
+              <option value="OTHER"   {% if fee.fee_type == 'OTHER'   %}selected{% endif %}>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <select name="status" class="form-control">
+              <option value="PENDING" {% if fee.status == 'PENDING' or not fee %}selected{% endif %}>Pending</option>
+              <option value="PARTIAL" {% if fee.status == 'PARTIAL' %}selected{% endif %}>Partially Paid</option>
+              <option value="PAID"    {% if fee.status == 'PAID'    %}selected{% endif %}>Fully Paid</option>
+              <option value="OVERDUE" {% if fee.status == 'OVERDUE' %}selected{% endif %}>Overdue</option>
+              <option value="WAIVED"  {% if fee.status == 'WAIVED'  %}selected{% endif %}>Waived</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-section-title" style="margin-top:8px;">Period</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Month <span class="required">*</span></label>
+            <select name="month" class="form-control">
+              {% for num, name in months %}
+                <option value="{{ num }}" {% if fee.month == num %}selected{% endif %}>{{ name }}</option>
+              {% empty %}
+                <option value="1">January</option><option value="2">February</option>
+                <option value="3">March</option><option value="4">April</option>
+                <option value="5">May</option><option value="6">June</option>
+                <option value="7">July</option><option value="8">August</option>
+                <option value="9">September</option><option value="10">October</option>
+                <option value="11">November</option><option value="12">December</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Year <span class="required">*</span></label>
+            <input type="number" name="year" class="form-control" min="2020" max="2099" value="{{ fee.year|default:'2025' }}">
+          </div>
+        </div>
+
+        <div class="form-section-title" style="margin-top:8px;">Amounts & Dates</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Total Amount (PKR) <span class="required">*</span></label>
+            <input type="number" name="amount" class="form-control" step="0.01" required placeholder="0.00" value="{{ fee.amount|default:'' }}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Paid Amount (PKR)</label>
+            <input type="number" name="paid_amount" class="form-control" step="0.01" placeholder="0.00" value="{{ fee.paid_amount|default:'0.00' }}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Due Date <span class="required">*</span></label>
+            <input type="date" name="due_date" class="form-control" required value="{{ fee.due_date|date:'Y-m-d'|default:'' }}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Payment Date</label>
+            <input type="date" name="payment_date" class="form-control" value="{{ fee.payment_date|date:'Y-m-d'|default:'' }}">
+            <span class="form-hint">Leave blank if not yet paid</span>
+          </div>
+          <div class="form-group form-full">
+            <label class="form-label">Remarks</label>
+            <textarea name="remarks" class="form-control" rows="2" placeholder="Optional notes…">{{ fee.remarks|default:'' }}</textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;">
+      <button type="submit" class="btn btn-primary">
+        {% if action == 'Add' %}✓ Create Fee Record{% else %}✓ Save Changes{% endif %}
+      </button>
+      <a href="{% url 'fees:index' %}" class="btn btn-outline">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

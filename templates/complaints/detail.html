@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}Complaint #{{ complaint.pk }}{% endblock %}
+{% block breadcrumb %}<a href="{% url 'complaints:index' %}">Complaints</a><span class="sep">/</span><span class="current">#{{ complaint.pk }}</span>{% endblock %}
+
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;">
+  <div class="page-title">Complaint #{{ complaint.pk }}</div>
+  <div style="display:flex;gap:10px;">
+    <a href="{% url 'complaints:edit' complaint.pk %}" class="btn btn-outline">✏️ Respond / Edit</a>
+    <a href="{% url 'complaints:delete' complaint.pk %}" class="btn btn-danger">🗑 Delete</a>
+  </div>
+</div>
+
+<!-- Hero -->
+<div class="detail-hero">
+  <div class="detail-avatar" style="font-size:28px;">
+    {% if complaint.priority == 'URGENT' %}🚨
+    {% elif complaint.priority == 'HIGH' %}🔴
+    {% elif complaint.priority == 'MEDIUM' %}🟡
+    {% else %}🟢{% endif %}
+  </div>
+  <div class="detail-meta">
+    <div class="detail-name">{{ complaint.title }}</div>
+    <div class="detail-subtitle">
+      Filed by {{ complaint.student.user.get_full_name|default:complaint.student.user.username }}
+      ({{ complaint.student.roll_number }}) · {{ complaint.created_at|date:"d M Y, H:i" }}
+    </div>
+    <div class="detail-tags">
+      {% if complaint.status == 'PENDING'      %}<span class="badge badge-amber">Pending</span>
+      {% elif complaint.status == 'REVIEWED'   %}<span class="badge badge-blue">Under Review</span>
+      {% elif complaint.status == 'IN_PROGRESS'%}<span class="badge badge-purple">In Progress</span>
+      {% elif complaint.status == 'RESOLVED'   %}<span class="badge badge-green"><span class="badge-dot"></span>Resolved</span>
+      {% elif complaint.status == 'REJECTED'   %}<span class="badge badge-red">Rejected</span>{% endif %}
+
+      {% if complaint.priority == 'URGENT' %}<span class="badge badge-red">Urgent</span>
+      {% elif complaint.priority == 'HIGH' %}<span class="badge badge-orange">High Priority</span>
+      {% elif complaint.priority == 'MEDIUM' %}<span class="badge badge-amber">Medium Priority</span>
+      {% else %}<span class="badge badge-muted">Low Priority</span>{% endif %}
+
+      <span class="badge badge-muted">{{ complaint.get_category_display }}</span>
+    </div>
+  </div>
+</div>
+
+<!-- Info Grid -->
+<div class="detail-info-grid">
+  <div class="info-block">
+    <div class="info-label">Student</div>
+    <div class="info-value">
+      <a href="{% url 'students:detail' complaint.student.pk %}" style="color:var(--amber);text-decoration:none;">
+        {{ complaint.student.roll_number }}
+      </a>
+    </div>
+  </div>
+  <div class="info-block">
+    <div class="info-label">Category</div>
+    <div class="info-value">{{ complaint.get_category_display }}</div>
+  </div>
+  <div class="info-block">
+    <div class="info-label">Filed On</div>
+    <div class="info-value text-mono">{{ complaint.created_at|date:"d M Y" }}</div>
+  </div>
+  <div class="info-block">
+    <div class="info-label">Last Updated</div>
+    <div class="info-value text-mono">{{ complaint.updated_at|date:"d M Y" }}</div>
+  </div>
+  {% if complaint.resolved_at %}
+  <div class="info-block">
+    <div class="info-label">Resolved On</div>
+    <div class="info-value text-mono">{{ complaint.resolved_at|date:"d M Y, H:i" }}</div>
+  </div>
+  {% endif %}
+  {% if complaint.resolved_by %}
+  <div class="info-block">
+    <div class="info-label">Resolved By</div>
+    <div class="info-value">{{ complaint.resolved_by.get_full_name|default:complaint.resolved_by.username }}</div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Complaint Text -->
+<div class="card" style="margin-bottom:20px;">
+  <div class="card-header">
+    <div class="card-title">📝 Complaint Description</div>
+  </div>
+  <div class="card-body" style="font-size:14px;line-height:1.8;color:var(--text-secondary);">
+    {{ complaint.complaint_text|linebreaks }}
+  </div>
+  {% if complaint.attachment %}
+  <div class="card-footer">
+    <a href="{{ complaint.attachment.url }}" target="_blank" class="btn btn-outline btn-sm">📎 View Attachment</a>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Admin Response -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">💬 Admin Response</div>
+    <a href="{% url 'complaints:edit' complaint.pk %}" class="btn btn-outline btn-sm">+ Add Response</a>
+  </div>
+  <div class="card-body">
+    {% if complaint.admin_response %}
+      <div style="font-size:14px;line-height:1.8;color:var(--text-secondary);">
+        {{ complaint.admin_response|linebreaks }}
+      </div>
+    {% else %}
+      <div class="empty-state" style="padding:24px 0;">
+        <div class="empty-state-icon" style="font-size:28px;">💬</div>
+        <p>No admin response yet</p>
+        <a href="{% url 'complaints:edit' complaint.pk %}" class="btn btn-outline btn-sm">Respond to this complaint</a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

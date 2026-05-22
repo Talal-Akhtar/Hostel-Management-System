@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Delete Student{% endblock %}
+{% block breadcrumb %}<a href="{% url 'students:index' %}">Students</a><span class="sep">/</span><span class="current">Delete</span>{% endblock %}
+
+{% block content %}
+<div style="max-width:480px;margin:0 auto;margin-top:40px;">
+  <div class="danger-zone">
+    <div style="font-size:40px;margin-bottom:12px;">⚠️</div>
+    <h3>Delete Student Record</h3>
+    <p>
+      You are about to permanently delete <strong style="color:var(--text-primary);">{{ student }}</strong>.
+      This will also remove all associated fees, complaints, and visitor records. This action cannot be undone.
+    </p>
+    <div style="display:flex;gap:10px;justify-content:center;">
+      <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Yes, Delete Permanently</button>
+      </form>
+      <a href="{% url 'students:index' %}" class="btn btn-outline">Cancel</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block breadcrumb %}<span class="current">Dashboard</span>{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;">
+  <div>
+    <div class="page-title">Dashboard</div>
+    <div style="color:var(--text-muted);font-size:13px;margin-top:4px;">
+      Hostel overview · {% now "l, d F Y" %}
+    </div>
+  </div>
+  <div style="display:flex;gap:10px;">
+    <a href="{% url 'students:add' %}" class="btn btn-outline btn-sm">+ Student</a>
+    <a href="{% url 'visitors:add' %}" class="btn btn-primary btn-sm">+ Visitor</a>
+  </div>
+</div>
+
+<!-- ── STAT CARDS ────────────────────────────────────────────── -->
+<div class="stats-grid">
+
+  <div class="stat-card amber">
+    <div class="stat-card-header">
+      <div class="stat-card-label">Active Students</div>
+      <div class="stat-card-icon">👤</div>
+    </div>
+    <div class="stat-card-value" data-count="{{ total_students }}">{{ total_students }}</div>
+    <div class="stat-card-sub">{{ inactive_students }} inactive / departed</div>
+  </div>
+
+  <div class="stat-card blue">
+    <div class="stat-card-header">
+      <div class="stat-card-label">Total Rooms</div>
+      <div class="stat-card-icon">🚪</div>
+    </div>
+    <div class="stat-card-value" data-count="{{ total_rooms }}">{{ total_rooms }}</div>
+    <div class="stat-card-sub">{{ full_rooms }} at full capacity</div>
+  </div>
+
+  <div class="stat-card red">
+    <div class="stat-card-header">
+      <div class="stat-card-label">Pending Fees</div>
+      <div class="stat-card-icon">💰</div>
+    </div>
+    <div class="stat-card-value" data-count="{{ pending_fees }}">{{ pending_fees }}</div>
+    <div class="stat-card-sub">{{ overdue_fees }} overdue</div>
+  </div>
+
+  <div class="stat-card orange">
+    <div class="stat-card-header">
+      <div class="stat-card-label">Open Complaints</div>
+      <div class="stat-card-icon">📋</div>
+    </div>
+    <div class="stat-card-value" data-count="{{ open_complaints }}">{{ open_complaints }}</div>
+    <div class="stat-card-sub">{{ resolved_complaints }} resolved</div>
+  </div>
+
+  <div class="stat-card green">
+    <div class="stat-card-header">
+      <div class="stat-card-label">Fees Paid</div>
+      <div class="stat-card-icon">✓</div>
+    </div>
+    <div class="stat-card-value" data-count="{{ paid_fees_today }}">{{ paid_fees_today }}</div>
+    <div class="stat-card-sub">Total cleared records</div>
+  </div>
+
+  <div class="stat-card purple">
+    <div class="stat-card-header">
+      <div class="stat-card-label">Visitors Inside</div>
+      <div class="stat-card-icon">🪪</div>
+    </div>
+    <div class="stat-card-value" data-count="{{ visitors_inside }}">{{ visitors_inside }}</div>
+    <div class="stat-card-sub">Currently on premises</div>
+  </div>
+
+</div>
+
+<!-- ── TWO-COLUMN ACTIVITY ───────────────────────────────────── -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;">
+
+  <!-- Recent Complaints -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><span class="card-title-icon">📋</span> Recent Complaints</div>
+      <a href="{% url 'complaints:index' %}" class="btn btn-outline btn-sm">View All</a>
+    </div>
+    {% if recent_complaints %}
+    <div class="table-wrapper">
+      <table class="hms-table">
+        <thead><tr>
+          <th>Student</th>
+          <th>Title</th>
+          <th>Status</th>
+        </tr></thead>
+        <tbody>
+          {% for c in recent_complaints %}
+          <tr data-href="{% url 'complaints:detail' c.pk %}">
+            <td class="td-mono">{{ c.student.roll_number }}</td>
+            <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ c.title }}</td>
+            <td>
+              {% if c.status == 'PENDING' %}<span class="badge badge-amber">Pending</span>
+              {% elif c.status == 'RESOLVED' %}<span class="badge badge-green">Resolved</span>
+              {% elif c.status == 'IN_PROGRESS' %}<span class="badge badge-blue">In Progress</span>
+              {% elif c.status == 'REJECTED' %}<span class="badge badge-red">Rejected</span>
+              {% else %}<span class="badge badge-muted">{{ c.get_status_display }}</span>{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state" style="padding:32px 20px;">
+      <div class="empty-state-icon">📋</div>
+      <p>No complaints yet</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Recent Visitors -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><span class="card-title-icon">🪪</span> Recent Visitors</div>
+      <a href="{% url 'visitors:index' %}" class="btn btn-outline btn-sm">View All</a>
+    </div>
+    {% if recent_visitors %}
+    <div class="table-wrapper">
+      <table class="hms-table">
+        <thead><tr>
+          <th>Visitor</th>
+          <th>Visiting</th>
+          <th>Status</th>
+        </tr></thead>
+        <tbody>
+          {% for v in recent_visitors %}
+          <tr data-href="{% url 'visitors:detail' v.pk %}">
+            <td>{{ v.visitor_name }}</td>
+            <td class="td-mono">{{ v.student.roll_number }}</td>
+            <td>
+              {% if v.exit_time %}
+                <span class="badge badge-muted">Exited</span>
+              {% else %}
+                <span class="badge badge-green"><span class="badge-dot"></span>Inside</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state" style="padding:32px 20px;">
+      <div class="empty-state-icon">🪪</div>
+      <p>No visitor records</p>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- Recent Fees -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-title"><span class="card-title-icon">💰</span> Recent Fee Records</div>
+    <a href="{% url 'fees:index' %}" class="btn btn-outline btn-sm">View All</a>
+  </div>
+  {% if recent_fees %}
+  <div class="table-wrapper">
+    <table class="hms-table">
+      <thead><tr>
+        <th>Student</th>
+        <th>Type</th>
+        <th>Month / Year</th>
+        <th>Amount</th>
+        <th>Status</th>
+      </tr></thead>
+      <tbody>
+        {% for f in recent_fees %}
+        <tr data-href="{% url 'fees:detail' f.pk %}">
+          <td>{{ f.student.user.get_full_name|default:f.student.roll_number }}</td>
+          <td>{{ f.get_fee_type_display }}</td>
+          <td class="td-mono">{{ f.get_month_display }} {{ f.year }}</td>
+          <td class="td-mono">PKR {{ f.amount }}</td>
+          <td>
+            {% if f.status == 'PAID' %}<span class="badge badge-green">Paid</span>
+            {% elif f.status == 'OVERDUE' %}<span class="badge badge-red">Overdue</span>
+            {% elif f.status == 'PENDING' %}<span class="badge badge-amber">Pending</span>
+            {% elif f.status == 'PARTIAL' %}<span class="badge badge-orange">Partial</span>
+            {% else %}<span class="badge badge-muted">{{ f.get_status_display }}</span>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-state-icon">💰</div>
+    <p>No fee records yet</p>
+    <a href="{% url 'fees:add' %}" class="btn btn-primary">Add First Fee</a>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

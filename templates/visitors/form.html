@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}{{ action }} Visitor{% endblock %}
+{% block breadcrumb %}<a href="{% url 'visitors:index' %}">Visitors</a><span class="sep">/</span><span class="current">{{ action }}</span>{% endblock %}
+
+{% block content %}
+<div style="max-width:700px;">
+  <div style="margin-bottom:24px;">
+    <div class="page-title">{{ action }} Visitor</div>
+    <div style="color:var(--text-muted);font-size:13px;margin-top:4px;">
+      {% if action == 'Add' %}Log a new visitor entry into the hostel{% else %}Update visitor record or log exit time{% endif %}
+    </div>
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+
+    <!-- Visitor Details -->
+    <div class="card" style="margin-bottom:20px;">
+      <div class="card-header"><div class="card-title">🪪 Visitor Information</div></div>
+      <div class="card-body">
+
+        <div class="form-section-title">Visiting</div>
+        <div class="form-group">
+          <label class="form-label">Student Being Visited <span class="required">*</span></label>
+          <select name="student" class="form-control" required>
+            <option value="">— Select Student —</option>
+            {% for s in students %}
+              <option value="{{ s.pk }}" {% if visitor.student.pk == s.pk %}selected{% endif %}>
+                {{ s.roll_number }} — {{ s.user.get_full_name|default:s.user.username }}
+                {% if s.room %} (Room {{ s.room.room_number }}){% endif %}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-section-title" style="margin-top:8px;">Visitor Details</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Visitor Full Name <span class="required">*</span></label>
+            <input type="text" name="visitor_name" class="form-control" required
+              placeholder="Full name of the visitor"
+              value="{{ visitor.visitor_name|default:'' }}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Visitor Phone</label>
+            <input type="text" name="visitor_phone" class="form-control"
+              placeholder="+92-300-0000000"
+              value="{{ visitor.visitor_phone|default:'' }}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Relation to Student <span class="required">*</span></label>
+            <select name="relation" class="form-control">
+              <option value="PARENT"   {% if visitor.relation == 'PARENT'   %}selected{% endif %}>Parent</option>
+              <option value="SIBLING"  {% if visitor.relation == 'SIBLING'  %}selected{% endif %}>Brother / Sister</option>
+              <option value="RELATIVE" {% if visitor.relation == 'RELATIVE' %}selected{% endif %}>Relative</option>
+              <option value="FRIEND"   {% if visitor.relation == 'FRIEND'   %}selected{% endif %}>Friend</option>
+              <option value="OTHER"    {% if visitor.relation == 'OTHER' or not visitor %}selected{% endif %}>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Purpose of Visit</label>
+            <input type="text" name="purpose" class="form-control"
+              placeholder="e.g. Weekend visit, dropping supplies…"
+              value="{{ visitor.purpose|default:'' }}">
+          </div>
+        </div>
+
+        <div class="form-section-title" style="margin-top:8px;">ID Verification</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">ID Proof Type</label>
+            <select name="id_proof_type" class="form-control">
+              <option value="CNIC"       {% if visitor.id_proof_type == 'CNIC' or not visitor %}selected{% endif %}>CNIC / National ID</option>
+              <option value="PASSPORT"   {% if visitor.id_proof_type == 'PASSPORT'   %}selected{% endif %}>Passport</option>
+              <option value="DRIVING"    {% if visitor.id_proof_type == 'DRIVING'    %}selected{% endif %}>Driving License</option>
+              <option value="STUDENT_ID" {% if visitor.id_proof_type == 'STUDENT_ID' %}selected{% endif %}>Student ID</option>
+              <option value="OTHER"      {% if visitor.id_proof_type == 'OTHER'      %}selected{% endif %}>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">ID Number</label>
+            <input type="text" name="id_proof_number" class="form-control"
+              placeholder="e.g. 35202-1234567-1"
+              value="{{ visitor.id_proof_number|default:'' }}">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Timing -->
+    <div class="card" style="margin-bottom:20px;">
+      <div class="card-header"><div class="card-title">⏱ Entry / Exit Times</div></div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Entry Time <span class="required">*</span></label>
+            <input type="datetime-local" name="entry_time" class="form-control" required
+              value="{{ visitor.entry_time|date:'Y-m-d\TH:i'|default:'' }}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Exit Time</label>
+            <input type="datetime-local" name="exit_time" class="form-control"
+              value="{{ visitor.exit_time|date:'Y-m-d\TH:i'|default:'' }}">
+            <span class="form-hint">Leave blank if visitor is still inside</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Approved / Logged By</label>
+            <input type="text" name="approved_by" class="form-control"
+              placeholder="Guard or admin name"
+              value="{{ visitor.approved_by|default:'' }}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Notes</label>
+            <input type="text" name="notes" class="form-control"
+              placeholder="Any additional notes…"
+              value="{{ visitor.notes|default:'' }}">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;">
+      <button type="submit" class="btn btn-primary">
+        {% if action == 'Add' %}✓ Log Visitor Entry{% else %}✓ Save Changes{% endif %}
+      </button>
+      <a href="{% url 'visitors:index' %}" class="btn btn-outline">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

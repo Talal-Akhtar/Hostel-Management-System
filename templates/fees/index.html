@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Fees{% endblock %}
+{% block breadcrumb %}<span class="current">Fees</span>{% endblock %}
+
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+  <div>
+    <div class="page-title">Fee Management</div>
+    <div style="color:var(--text-muted);font-size:13px;margin-top:4px;">{{ fees|length }} record{{ fees|length|pluralize }} total</div>
+  </div>
+  <a href="{% url 'fees:add' %}" class="btn btn-primary">+ Add Fee</a>
+</div>
+
+<!-- Filter Bar -->
+<div class="card" style="margin-bottom:20px;">
+  <div class="card-body" style="padding:14px 20px;">
+    <form method="get" style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+      <div style="flex:1;min-width:160px;">
+        <label class="form-label">Student</label>
+        <input type="text" name="q" class="form-control" placeholder="Roll number or name…" value="{{ request.GET.q }}">
+      </div>
+      <div style="min-width:140px;">
+        <label class="form-label">Status</label>
+        <select name="status" class="form-control">
+          <option value="">All Status</option>
+          <option value="PENDING"  {% if request.GET.status == 'PENDING'  %}selected{% endif %}>Pending</option>
+          <option value="PAID"     {% if request.GET.status == 'PAID'     %}selected{% endif %}>Paid</option>
+          <option value="OVERDUE"  {% if request.GET.status == 'OVERDUE'  %}selected{% endif %}>Overdue</option>
+          <option value="PARTIAL"  {% if request.GET.status == 'PARTIAL'  %}selected{% endif %}>Partial</option>
+          <option value="WAIVED"   {% if request.GET.status == 'WAIVED'   %}selected{% endif %}>Waived</option>
+        </select>
+      </div>
+      <div style="min-width:140px;">
+        <label class="form-label">Type</label>
+        <select name="type" class="form-control">
+          <option value="">All Types</option>
+          <option value="ROOM"    {% if request.GET.type == 'ROOM'    %}selected{% endif %}>Room Rent</option>
+          <option value="FOOD"    {% if request.GET.type == 'FOOD'    %}selected{% endif %}>Food / Mess</option>
+          <option value="ELEC"    {% if request.GET.type == 'ELEC'    %}selected{% endif %}>Electricity</option>
+          <option value="WATER"   {% if request.GET.type == 'WATER'   %}selected{% endif %}>Water</option>
+          <option value="LAUNDRY" {% if request.GET.type == 'LAUNDRY' %}selected{% endif %}>Laundry</option>
+          <option value="OTHER"   {% if request.GET.type == 'OTHER'   %}selected{% endif %}>Other</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:8px;padding-bottom:1px;">
+        <button type="submit" class="btn btn-primary">Filter</button>
+        <a href="{% url 'fees:index' %}" class="btn btn-outline">Reset</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  {% if fees %}
+  <div class="table-wrapper">
+    <table class="hms-table">
+      <thead>
+        <tr>
+          <th>Student</th>
+          <th>Type</th>
+          <th>Month / Year</th>
+          <th>Amount (PKR)</th>
+          <th>Paid (PKR)</th>
+          <th>Due Date</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for fee in fees %}
+        <tr>
+          <td>
+            <div class="td-name">
+              <div class="td-avatar">{{ fee.student.user.first_name|first|upper|default:fee.student.user.username|first|upper }}</div>
+              <div>
+                <div style="font-weight:500;">{{ fee.student.user.get_full_name|default:fee.student.user.username }}</div>
+                <div class="td-mono" style="font-size:11px;">{{ fee.student.roll_number }}</div>
+              </div>
+            </div>
+          </td>
+          <td>{{ fee.get_fee_type_display }}</td>
+          <td class="td-mono">{{ fee.get_month_display }} {{ fee.year }}</td>
+          <td class="td-mono">{{ fee.amount }}</td>
+          <td class="td-mono">
+            <span style="color:{% if fee.paid_amount >= fee.amount %}var(--green){% elif fee.paid_amount > 0 %}var(--amber){% else %}var(--text-muted){% endif %};">
+              {{ fee.paid_amount }}
+            </span>
+          </td>
+          <td class="td-mono">{{ fee.due_date|date:"d M Y" }}</td>
+          <td>
+            {% if fee.status == 'PAID' %}    <span class="badge badge-green"><span class="badge-dot"></span>Paid</span>
+            {% elif fee.status == 'OVERDUE' %}<span class="badge badge-red">Overdue</span>
+            {% elif fee.status == 'PENDING' %}<span class="badge badge-amber">Pending</span>
+            {% elif fee.status == 'PARTIAL' %}<span class="badge badge-orange">Partial</span>
+            {% elif fee.status == 'WAIVED'  %}<span class="badge badge-muted">Waived</span>
+            {% else %}<span class="badge badge-muted">{{ fee.get_status_display }}</span>{% endif %}
+          </td>
+          <td>
+            <div style="display:flex;gap:6px;">
+              <a href="{% url 'fees:detail' fee.pk %}" class="btn btn-outline btn-sm" data-tooltip="View">👁</a>
+              <a href="{% url 'fees:edit' fee.pk %}" class="btn btn-outline btn-sm" data-tooltip="Edit">✏️</a>
+              <a href="{% url 'fees:delete' fee.pk %}" class="btn btn-danger btn-sm" data-tooltip="Delete">🗑</a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-state-icon">💰</div>
+    <h3>No fee records found</h3>
+    <p>{% if request.GET.q or request.GET.status %}No records match your filters.{% else %}Create the first fee record to get started.{% endif %}</p>
+    <a href="{% url 'fees:add' %}" class="btn btn-primary">+ Add Fee Record</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

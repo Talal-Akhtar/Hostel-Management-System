@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% block title %}{{ student }}{% endblock %}
+{% block breadcrumb %}<a href="{% url 'students:index' %}">Students</a><span class="sep">/</span><span class="current">{{ student.roll_number }}</span>{% endblock %}
+
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;">
+  <div class="page-title">Student Profile</div>
+  <div style="display:flex;gap:10px;">
+    <a href="{% url 'students:edit' student.pk %}" class="btn btn-outline">✏️ Edit</a>
+    <a href="{% url 'students:delete' student.pk %}" class="btn btn-danger">🗑 Delete</a>
+  </div>
+</div>
+
+<!-- Hero -->
+<div class="detail-hero">
+  <div class="detail-avatar">
+    {% if student.profile_pic %}
+      <img src="{{ student.profile_pic.url }}" alt="">
+    {% else %}
+      {{ student.user.first_name|first|upper|default:student.user.username|first|upper }}
+    {% endif %}
+  </div>
+  <div class="detail-meta">
+    <div class="detail-name">{{ student.user.get_full_name|default:student.user.username }}</div>
+    <div class="detail-subtitle">{{ student.roll_number }} · @{{ student.user.username }}</div>
+    <div class="detail-tags">
+      {% if student.is_active %}
+        <span class="badge badge-green"><span class="badge-dot"></span>Active Resident</span>
+      {% else %}
+        <span class="badge badge-muted">Inactive</span>
+      {% endif %}
+      <span class="badge badge-blue">{{ student.get_department_display }}</span>
+      {% if student.room %}
+        <span class="badge badge-amber">Room {{ student.room.room_number }}</span>
+      {% else %}
+        <span class="badge badge-red">No Room Assigned</span>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Info Grid -->
+<div class="detail-info-grid">
+  <div class="info-block">
+    <div class="info-label">Email</div>
+    <div class="info-value">{{ student.user.email|default:"—" }}</div>
+  </div>
+  <div class="info-block">
+    <div class="info-label">Phone</div>
+    <div class="info-value text-mono">{{ student.phone_number }}</div>
+  </div>
+  <div class="info-block">
+    <div class="info-label">Department</div>
+    <div class="info-value">{{ student.get_department_display }}</div>
+  </div>
+  <div class="info-block">
+    <div class="info-label">Date Joined</div>
+    <div class="info-value text-mono">{{ student.date_joined|date:"d M Y" }}</div>
+  </div>
+  <div class="info-block">
+    <div class="info-label">Room</div>
+    <div class="info-value">
+      {% if student.room %}
+        <a href="{% url 'rooms:detail' student.room.pk %}" style="color:var(--amber);text-decoration:none;">
+          Room {{ student.room.room_number }} (Floor {{ student.room.floor }})
+        </a>
+      {% else %}—{% endif %}
+    </div>
+  </div>
+  <div class="info-block">
+    <div class="info-label">Guardian</div>
+    <div class="info-value">{{ student.guardian_name|default:"—" }}</div>
+  </div>
+  <div class="info-block">
+    <div class="info-label">Guardian Phone</div>
+    <div class="info-value text-mono">{{ student.guardian_phone|default:"—" }}</div>
+  </div>
+  <div class="info-block">
+    <div class="info-label">Address</div>
+    <div class="info-value" style="font-size:13px;">{{ student.address|default:"—" }}</div>
+  </div>
+</div>
+
+<!-- Tabs: Fees / Complaints / Visitors -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+
+  <!-- Fees -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">💰 Fee History</div>
+      <a href="{% url 'fees:add' %}" class="btn btn-outline btn-sm">+ Add</a>
+    </div>
+    {% if student.fees.all %}
+    <div class="table-wrapper">
+      <table class="hms-table">
+        <thead><tr><th>Type</th><th>Month</th><th>Amount</th><th>Status</th></tr></thead>
+        <tbody>
+          {% for fee in student.fees.all|slice:":5" %}
+          <tr data-href="{% url 'fees:detail' fee.pk %}">
+            <td>{{ fee.get_fee_type_display }}</td>
+            <td class="td-mono">{{ fee.get_month_display }} {{ fee.year }}</td>
+            <td class="td-mono">{{ fee.amount }}</td>
+            <td>
+              {% if fee.status == 'PAID' %}<span class="badge badge-green">Paid</span>
+              {% elif fee.status == 'OVERDUE' %}<span class="badge badge-red">Overdue</span>
+              {% elif fee.status == 'PENDING' %}<span class="badge badge-amber">Pending</span>
+              {% else %}<span class="badge badge-muted">{{ fee.get_status_display }}</span>{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state" style="padding:24px;">
+      <p>No fee records</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Complaints -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📋 Complaints</div>
+      <a href="{% url 'complaints:add' %}" class="btn btn-outline btn-sm">+ Add</a>
+    </div>
+    {% if student.complaints.all %}
+    <div class="table-wrapper">
+      <table class="hms-table">
+        <thead><tr><th>Title</th><th>Category</th><th>Status</th></tr></thead>
+        <tbody>
+          {% for c in student.complaints.all|slice:":5" %}
+          <tr data-href="{% url 'complaints:detail' c.pk %}">
+            <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ c.title }}</td>
+            <td>{{ c.get_category_display }}</td>
+            <td>
+              {% if c.status == 'PENDING' %}<span class="badge badge-amber">Pending</span>
+              {% elif c.status == 'RESOLVED' %}<span class="badge badge-green">Resolved</span>
+              {% else %}<span class="badge badge-muted">{{ c.get_status_display }}</span>{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state" style="padding:24px;"><p>No complaints</p></div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}Visitor — {{ visitor.visitor_name }}{% endblock %}
+{% block breadcrumb %}<a href="{% url 'visitors:index' %}">Visitors</a><span class="sep">/</span><span class="current">{{ visitor.visitor_name }}</span>{% endblock %}
+
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;">
+  <div class="page-title">Visitor Record</div>
+  <div style="display:flex;gap:10px;">
+    <a href="{% url 'visitors:edit' visitor.pk %}" class="btn btn-outline">✏️ Edit / Log Exit</a>
+    <a href="{% url 'visitors:delete' visitor.pk %}" class="btn btn-danger">🗑 Delete</a>
+  </div>
+</div>
+
+<!-- Hero -->
+<div class="detail-hero">
+  <div class="detail-avatar" style="font-size:32px;">🪪</div>
+  <div class="detail-meta">
+    <div class="detail-name">{{ visitor.visitor_name }}</div>
+    <div class="detail-subtitle">
+      {{ visitor.get_relation_display }} of {{ visitor.student.user.get_full_name|default:visitor.student.user.username }}
+      ({{ visitor.student.roll_number }})
+    </div>
+    <div class="detail-tags">
+      {% if visitor.exit_time %}
+        <span class="badge badge-muted">Exited · {{ visitor.duration }}</span>
+      {% else %}
+        <span class="badge badge-green"><span class="badge-dot"></span>Currently Inside</span>
+      {% endif %}
+      <span class="badge badge-blue">{{ visitor.get_relation_display }}</span>
+      {% if visitor.approved_by %}
+        <span class="badge badge-muted">Approved by {{ visitor.approved_by }}</span>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Info Grid -->
+<div class="detail-info-grid">
+  <div class="info-block">
+    <div class="info-label">Visiting Student</div>
+    <div class="info-value">
+      <a href="{% url 'students:detail' visitor.student.pk %}" style="color:var(--amber);text-decoration:none;">
+        {{ visitor.student.roll_number }}
+      </a>
+    </div>
+  </div>
+  <div class="info-block">
+    <div class="info-label">Relation</div>
+    <div class="info-value">{{ visitor.get_relation_display }}</div>
+  </div>
+  <div class="info-block">
+    <div class="info-label">Phone</div>
+    <div class="info-value text-mono">{{ visitor.visitor_phone|default:"—" }}</div>
+  </div>
+  <div class="info-block">
+    <div class="info-label">Entry Time</div>
+    <div class="info-value text-mono">{{ visitor.entry_time|date:"d M Y, H:i" }}</div>
+  </div>
+  <div class="info-block">
+    <div class="info-label">Exit Time</div>
+    <div class="info-value text-mono">
+      {% if visitor.exit_time %}
+        {{ visitor.exit_time|date:"d M Y, H:i" }}
+      {% else %}
+        <span style="color:var(--green);">Still inside</span>
+      {% endif %}
+    </div>
+  </div>
+  <div class="info-block">
+    <div class="info-label">Duration</div>
+    <div class="info-value text-mono">{{ visitor.duration }}</div>
+  </div>
+  <div class="info-block">
+    <div class="info-label">ID Proof Type</div>
+    <div class="info-value">{{ visitor.get_id_proof_type_display }}</div>
+  </div>
+  <div class="info-block">
+    <div class="info-label">ID Number</div>
+    <div class="info-value text-mono">{{ visitor.id_proof_number|default:"—" }}</div>
+  </div>
+  <div class="info-block">
+    <div class="info-label">Approved By</div>
+    <div class="info-value">{{ visitor.approved_by|default:"—" }}</div>
+  </div>
+  <div class="info-block">
+    <div class="info-label">Logged On</div>
+    <div class="info-value text-mono">{{ visitor.created_at|date:"d M Y, H:i" }}</div>
+  </div>
+</div>
+
+{% if visitor.purpose or visitor.notes %}
+<div class="card">
+  <div class="card-header"><div class="card-title">📝 Notes</div></div>
+  <div class="card-body" style="color:var(--text-secondary);font-size:14px;line-height:1.7;">
+    {% if visitor.purpose %}
+      <p><strong style="color:var(--text-muted);font-size:12px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.06em;">Purpose of Visit</strong><br>
+      {{ visitor.purpose }}</p>
+    {% endif %}
+    {% if visitor.notes %}
+      <p style="margin-top:12px;"><strong style="color:var(--text-muted);font-size:12px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.06em;">Additional Notes</strong><br>
+      {{ visitor.notes }}</p>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+{% if not visitor.exit_time %}
+<div style="margin-top:20px;text-align:right;">
+  <form method="post" action="{% url 'visitors:edit' visitor.pk %}">
+    {% csrf_token %}
+    <input type="hidden" name="log_exit" value="1">
+    <button type="submit" class="btn btn-success">✓ Log Exit Now</button>
+  </form>
+</div>
+{% endif %}
+{% endblock %}

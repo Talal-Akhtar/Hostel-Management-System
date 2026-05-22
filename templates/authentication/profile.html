@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}My Profile{% endblock %}
+{% block breadcrumb %}<span class="current">My Profile</span>{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-between align-center mb-24" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+  <div>
+    <div class="page-title">My Profile</div>
+    <div style="color:var(--text-muted);font-size:13px;margin-top:4px;">Account details and preferences</div>
+  </div>
+  <a href="{% url 'auth:change_password' %}" class="btn btn-outline">🔑 Change Password</a>
+</div>
+
+<div class="detail-hero">
+  <div class="detail-avatar">{{ user.username|first|upper }}</div>
+  <div class="detail-meta">
+    <div class="detail-name">{{ user.get_full_name|default:user.username }}</div>
+    <div class="detail-subtitle">@{{ user.username }}</div>
+    <div class="detail-tags">
+      {% if user.is_superuser %}<span class="badge badge-amber">Superuser</span>{% endif %}
+      {% if user.is_staff %}<span class="badge badge-blue">Staff</span>{% endif %}
+      {% if user.is_active %}<span class="badge badge-green">Active</span>{% else %}<span class="badge badge-red">Inactive</span>{% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="detail-info-grid">
+  <div class="info-block">
+    <div class="info-label">Email</div>
+    <div class="info-value">{{ user.email|default:"—" }}</div>
+  </div>
+  <div class="info-block">
+    <div class="info-label">Username</div>
+    <div class="info-value text-mono">{{ user.username }}</div>
+  </div>
+  <div class="info-block">
+    <div class="info-label">Date Joined</div>
+    <div class="info-value">{{ user.date_joined|date:"d M Y" }}</div>
+  </div>
+  <div class="info-block">
+    <div class="info-label">Last Login</div>
+    <div class="info-value">{{ user.last_login|date:"d M Y, H:i"|default:"—" }}</div>
+  </div>
+</div>
+{% endblock %}

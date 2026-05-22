@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block title %}Complaints{% endblock %}
+{% block breadcrumb %}<span class="current">Complaints</span>{% endblock %}
+
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+  <div>
+    <div class="page-title">Complaint System</div>
+    <div style="color:var(--text-muted);font-size:13px;margin-top:4px;">{{ complaints|length }} complaint{{ complaints|length|pluralize }} logged</div>
+  </div>
+  <a href="{% url 'complaints:add' %}" class="btn btn-primary">+ File Complaint</a>
+</div>
+
+<!-- Filter Bar -->
+<div class="card" style="margin-bottom:20px;">
+  <div class="card-body" style="padding:14px 20px;">
+    <form method="get" style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+      <div style="flex:1;min-width:160px;">
+        <label class="form-label">Search</label>
+        <input type="text" name="q" class="form-control" placeholder="Title, student…" value="{{ request.GET.q }}">
+      </div>
+      <div style="min-width:140px;">
+        <label class="form-label">Status</label>
+        <select name="status" class="form-control">
+          <option value="">All</option>
+          <option value="PENDING"     {% if request.GET.status == 'PENDING'     %}selected{% endif %}>Pending</option>
+          <option value="REVIEWED"    {% if request.GET.status == 'REVIEWED'    %}selected{% endif %}>Under Review</option>
+          <option value="IN_PROGRESS" {% if request.GET.status == 'IN_PROGRESS' %}selected{% endif %}>In Progress</option>
+          <option value="RESOLVED"    {% if request.GET.status == 'RESOLVED'    %}selected{% endif %}>Resolved</option>
+          <option value="REJECTED"    {% if request.GET.status == 'REJECTED'    %}selected{% endif %}>Rejected</option>
+        </select>
+      </div>
+      <div style="min-width:140px;">
+        <label class="form-label">Category</label>
+        <select name="category" class="form-control">
+          <option value="">All</option>
+          <option value="MAINTENANCE" {% if request.GET.category == 'MAINTENANCE' %}selected{% endif %}>Maintenance</option>
+          <option value="PLUMBING"    {% if request.GET.category == 'PLUMBING'    %}selected{% endif %}>Plumbing</option>
+          <option value="ELECTRICAL"  {% if request.GET.category == 'ELECTRICAL'  %}selected{% endif %}>Electrical</option>
+          <option value="FOOD"        {% if request.GET.category == 'FOOD'        %}selected{% endif %}>Food</option>
+          <option value="CLEANLINESS" {% if request.GET.category == 'CLEANLINESS' %}selected{% endif %}>Cleanliness</option>
+          <option value="SECURITY"    {% if request.GET.category == 'SECURITY'    %}selected{% endif %}>Security</option>
+          <option value="INTERNET"    {% if request.GET.category == 'INTERNET'    %}selected{% endif %}>Internet</option>
+          <option value="OTHER"       {% if request.GET.category == 'OTHER'       %}selected{% endif %}>Other</option>
+        </select>
+      </div>
+      <div style="min-width:120px;">
+        <label class="form-label">Priority</label>
+        <select name="priority" class="form-control">
+          <option value="">All</option>
+          <option value="URGENT" {% if request.GET.priority == 'URGENT' %}selected{% endif %}>Urgent</option>
+          <option value="HIGH"   {% if request.GET.priority == 'HIGH'   %}selected{% endif %}>High</option>
+          <option value="MEDIUM" {% if request.GET.priority == 'MEDIUM' %}selected{% endif %}>Medium</option>
+          <option value="LOW"    {% if request.GET.priority == 'LOW'    %}selected{% endif %}>Low</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:8px;padding-bottom:1px;">
+        <button type="submit" class="btn btn-primary">Filter</button>
+        <a href="{% url 'complaints:index' %}" class="btn btn-outline">Reset</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  {% if complaints %}
+  <div class="table-wrapper">
+    <table class="hms-table">
+      <thead>
+        <tr>
+          <th>Student</th>
+          <th>Title</th>
+          <th>Category</th>
+          <th>Priority</th>
+          <th>Status</th>
+          <th>Filed On</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in complaints %}
+        <tr>
+          <td>
+            <div class="td-name">
+              <div class="td-avatar">{{ c.student.user.first_name|first|upper|default:c.student.user.username|first|upper }}</div>
+              <div>
+                <div style="font-weight:500;">{{ c.student.user.get_full_name|default:c.student.user.username }}</div>
+                <div class="td-mono" style="font-size:11px;">{{ c.student.roll_number }}</div>
+              </div>
+            </div>
+          </td>
+          <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;">
+            {{ c.title }}
+          </td>
+          <td>{{ c.get_category_display }}</td>
+          <td>
+            {% if c.priority == 'URGENT' %}<span class="badge badge-red">Urgent</span>
+            {% elif c.priority == 'HIGH'  %}<span class="badge badge-orange">High</span>
+            {% elif c.priority == 'MEDIUM'%}<span class="badge badge-amber">Medium</span>
+            {% else %}<span class="badge badge-muted">Low</span>{% endif %}
+          </td>
+          <td>
+            {% if c.status == 'PENDING'     %}<span class="badge badge-amber">Pending</span>
+            {% elif c.status == 'REVIEWED'  %}<span class="badge badge-blue">Reviewing</span>
+            {% elif c.status == 'IN_PROGRESS'%}<span class="badge badge-purple">In Progress</span>
+            {% elif c.status == 'RESOLVED'  %}<span class="badge badge-green"><span class="badge-dot"></span>Resolved</span>
+            {% elif c.status == 'REJECTED'  %}<span class="badge badge-red">Rejected</span>
+            {% else %}<span class="badge badge-muted">{{ c.get_status_display }}</span>{% endif %}
+          </td>
+          <td class="td-mono">{{ c.created_at|date:"d M Y" }}</td>
+          <td>
+            <div style="display:flex;gap:6px;">
+              <a href="{% url 'complaints:detail' c.pk %}" class="btn btn-outline btn-sm" data-tooltip="View">👁</a>
+              <a href="{% url 'complaints:edit' c.pk %}" class="btn btn-outline btn-sm" data-tooltip="Edit">✏️</a>
+              <a href="{% url 'complaints:delete' c.pk %}" class="btn btn-danger btn-sm" data-tooltip="Delete">🗑</a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-state-icon">📋</div>
+    <h3>No complaints found</h3>
+    <p>{% if request.GET.q or request.GET.status %}No results match your filters.{% else %}All clear — no complaints filed yet.{% endif %}</p>
+    <a href="{% url 'complaints:add' %}" class="btn btn-primary">+ File Complaint</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

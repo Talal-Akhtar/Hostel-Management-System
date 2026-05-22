@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}Students{% endblock %}
+{% block breadcrumb %}<span class="current">Students</span>{% endblock %}
+
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+  <div>
+    <div class="page-title">Students</div>
+    <div style="color:var(--text-muted);font-size:13px;margin-top:4px;">
+      {{ students|length }} student{{ students|length|pluralize }} registered
+    </div>
+  </div>
+  <a href="{% url 'students:add' %}" class="btn btn-primary">+ Add Student</a>
+</div>
+
+<!-- Filter Bar -->
+<div class="card" style="margin-bottom:20px;">
+  <div class="card-body" style="padding:14px 20px;">
+    <form method="get" style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+      <div style="flex:1;min-width:180px;">
+        <label class="form-label">Search</label>
+        <input type="text" name="q" class="form-control" placeholder="Name, roll number…" value="{{ request.GET.q }}">
+      </div>
+      <div style="min-width:150px;">
+        <label class="form-label">Department</label>
+        <select name="dept" class="form-control">
+          <option value="">All Departments</option>
+          <option value="CS" {% if request.GET.dept == 'CS' %}selected{% endif %}>Computer Science</option>
+          <option value="EE" {% if request.GET.dept == 'EE' %}selected{% endif %}>Electrical Eng.</option>
+          <option value="ME" {% if request.GET.dept == 'ME' %}selected{% endif %}>Mechanical Eng.</option>
+          <option value="CE" {% if request.GET.dept == 'CE' %}selected{% endif %}>Civil Eng.</option>
+          <option value="BBA" {% if request.GET.dept == 'BBA' %}selected{% endif %}>Business Admin</option>
+          <option value="MED" {% if request.GET.dept == 'MED' %}selected{% endif %}>Medical</option>
+          <option value="LAW" {% if request.GET.dept == 'LAW' %}selected{% endif %}>Law</option>
+        </select>
+      </div>
+      <div style="min-width:130px;">
+        <label class="form-label">Status</label>
+        <select name="status" class="form-control">
+          <option value="">All</option>
+          <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Active</option>
+          <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>Inactive</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:8px;padding-bottom:1px;">
+        <button type="submit" class="btn btn-primary">Filter</button>
+        <a href="{% url 'students:index' %}" class="btn btn-outline">Reset</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  {% if students %}
+  <div class="table-wrapper">
+    <table class="hms-table">
+      <thead>
+        <tr>
+          <th>Student</th>
+          <th>Roll No.</th>
+          <th>Department</th>
+          <th>Room</th>
+          <th>Phone</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for student in students %}
+        <tr>
+          <td>
+            <div class="td-name">
+              <div class="td-avatar">
+                {% if student.profile_pic %}
+                  <img src="{{ student.profile_pic.url }}" alt="">
+                {% else %}
+                  {{ student.user.first_name|first|upper|default:student.user.username|first|upper }}
+                {% endif %}
+              </div>
+              <div>
+                <div style="font-weight:500;">{{ student.user.get_full_name|default:student.user.username }}</div>
+                <div style="font-size:12px;color:var(--text-muted);">{{ student.user.email }}</div>
+              </div>
+            </div>
+          </td>
+          <td class="td-mono">{{ student.roll_number }}</td>
+          <td>{{ student.get_department_display }}</td>
+          <td>
+            {% if student.room %}
+              <span class="badge badge-blue">Room {{ student.room.room_number }}</span>
+            {% else %}
+              <span class="badge badge-muted">Unassigned</span>
+            {% endif %}
+          </td>
+          <td class="td-mono">{{ student.phone_number }}</td>
+          <td>
+            {% if student.is_active %}
+              <span class="badge badge-green"><span class="badge-dot"></span>Active</span>
+            {% else %}
+              <span class="badge badge-muted">Inactive</span>
+            {% endif %}
+          </td>
+          <td>
+            <div style="display:flex;gap:6px;">
+              <a href="{% url 'students:detail' student.pk %}" class="btn btn-outline btn-sm" data-tooltip="View">👁</a>
+              <a href="{% url 'students:edit' student.pk %}" class="btn btn-outline btn-sm" data-tooltip="Edit">✏️</a>
+              <a href="{% url 'students:delete' student.pk %}" class="btn btn-danger btn-sm" data-tooltip="Delete">🗑</a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-state-icon">👤</div>
+    <h3>No students found</h3>
+    <p>{% if request.GET.q %}No results match your search.{% else %}Add your first student to get started.{% endif %}</p>
+    <a href="{% url 'students:add' %}" class="btn btn-primary">+ Add Student</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

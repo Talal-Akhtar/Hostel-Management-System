@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Rooms{% endblock %}
+{% block breadcrumb %}<span class="current">Rooms</span>{% endblock %}
+
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+  <div>
+    <div class="page-title">Room Management</div>
+    <div style="color:var(--text-muted);font-size:13px;margin-top:4px;">{{ rooms|length }} room{{ rooms|length|pluralize }} configured</div>
+  </div>
+  <a href="{% url 'rooms:add' %}" class="btn btn-primary">+ Add Room</a>
+</div>
+
+<div class="card">
+  {% if rooms %}
+  <div class="table-wrapper">
+    <table class="hms-table">
+      <thead>
+        <tr>
+          <th>Room No.</th>
+          <th>Floor</th>
+          <th>Type</th>
+          <th>Occupancy</th>
+          <th>Rent / mo.</th>
+          <th>Amenities</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for room in rooms %}
+        <tr>
+          <td><span class="text-mono fw-600">{{ room.room_number }}</span></td>
+          <td>{{ room.get_floor_display }}</td>
+          <td>{{ room.get_room_type_display }}</td>
+          <td>
+            <div class="occ-bar">
+              {% with pct=room.get_current_occupancy|default:0 %}
+              <div class="occ-track">
+                <div class="occ-fill" style="width:{% if room.capacity %}{% widthratio room.get_current_occupancy room.capacity 100 %}{% else %}0{% endif %}%;"></div>
+              </div>
+              <span class="occ-label">{{ room.occupancy_status }}</span>
+              {% endwith %}
+            </div>
+          </td>
+          <td class="td-mono">PKR {{ room.monthly_rent }}</td>
+          <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:var(--text-muted);">
+            {{ room.amenities|default:"—" }}
+          </td>
+          <td>
+            {% if not room.is_active %}
+              <span class="badge badge-muted">Inactive</span>
+            {% elif room.is_full %}
+              <span class="badge badge-red">Full</span>
+            {% else %}
+              <span class="badge badge-green">Available</span>
+            {% endif %}
+          </td>
+          <td>
+            <div style="display:flex;gap:6px;">
+              <a href="{% url 'rooms:detail' room.pk %}" class="btn btn-outline btn-sm">👁</a>
+              <a href="{% url 'rooms:edit' room.pk %}" class="btn btn-outline btn-sm">✏️</a>
+              <a href="{% url 'rooms:delete' room.pk %}" class="btn btn-danger btn-sm">🗑</a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-state-icon">🚪</div>
+    <h3>No rooms configured</h3>
+    <p>Add your first room to start allocating students.</p>
+    <a href="{% url 'rooms:add' %}" class="btn btn-primary">+ Add Room</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

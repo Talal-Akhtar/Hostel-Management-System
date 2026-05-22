@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %}Visitors{% endblock %}
+{% block breadcrumb %}<span class="current">Visitors</span>{% endblock %}
+
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+  <div>
+    <div class="page-title">Visitor Log</div>
+    <div style="color:var(--text-muted);font-size:13px;margin-top:4px;">{{ visitors|length }} visitor record{{ visitors|length|pluralize }}</div>
+  </div>
+  <a href="{% url 'visitors:add' %}" class="btn btn-primary">+ Log Visitor</a>
+</div>
+
+<!-- Filter Bar -->
+<div class="card" style="margin-bottom:20px;">
+  <div class="card-body" style="padding:14px 20px;">
+    <form method="get" style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+      <div style="flex:1;min-width:160px;">
+        <label class="form-label">Search</label>
+        <input type="text" name="q" class="form-control" placeholder="Visitor name, student roll…" value="{{ request.GET.q }}">
+      </div>
+      <div style="min-width:140px;">
+        <label class="form-label">Relation</label>
+        <select name="relation" class="form-control">
+          <option value="">All</option>
+          <option value="PARENT"   {% if request.GET.relation == 'PARENT'   %}selected{% endif %}>Parent</option>
+          <option value="SIBLING"  {% if request.GET.relation == 'SIBLING'  %}selected{% endif %}>Sibling</option>
+          <option value="RELATIVE" {% if request.GET.relation == 'RELATIVE' %}selected{% endif %}>Relative</option>
+          <option value="FRIEND"   {% if request.GET.relation == 'FRIEND'   %}selected{% endif %}>Friend</option>
+          <option value="OTHER"    {% if request.GET.relation == 'OTHER'    %}selected{% endif %}>Other</option>
+        </select>
+      </div>
+      <div style="min-width:130px;">
+        <label class="form-label">Status</label>
+        <select name="inside" class="form-control">
+          <option value="">All</option>
+          <option value="1" {% if request.GET.inside == '1' %}selected{% endif %}>Inside Now</option>
+          <option value="0" {% if request.GET.inside == '0' %}selected{% endif %}>Exited</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:8px;padding-bottom:1px;">
+        <button type="submit" class="btn btn-primary">Filter</button>
+        <a href="{% url 'visitors:index' %}" class="btn btn-outline">Reset</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  {% if visitors %}
+  <div class="table-wrapper">
+    <table class="hms-table">
+      <thead>
+        <tr>
+          <th>Visitor</th>
+          <th>Visiting Student</th>
+          <th>Relation</th>
+          <th>Entry Time</th>
+          <th>Exit Time</th>
+          <th>Duration</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for v in visitors %}
+        <tr>
+          <td>
+            <div class="td-name">
+              <div class="td-avatar">{{ v.visitor_name|first|upper }}</div>
+              <div>
+                <div style="font-weight:500;">{{ v.visitor_name }}</div>
+                {% if v.visitor_phone %}
+                  <div class="td-mono" style="font-size:11px;">{{ v.visitor_phone }}</div>
+                {% endif %}
+              </div>
+            </div>
+          </td>
+          <td>
+            <a href="{% url 'students:detail' v.student.pk %}" style="color:var(--amber);text-decoration:none;font-weight:500;">
+              {{ v.student.user.get_full_name|default:v.student.user.username }}
+            </a>
+            <div class="td-mono" style="font-size:11px;">{{ v.student.roll_number }}</div>
+          </td>
+          <td>{{ v.get_relation_display }}</td>
+          <td class="td-mono">{{ v.entry_time|date:"d M Y" }}<br><span style="font-size:11px;color:var(--text-muted);">{{ v.entry_time|date:"H:i" }}</span></td>
+          <td class="td-mono">
+            {% if v.exit_time %}
+              {{ v.exit_time|date:"d M Y" }}<br><span style="font-size:11px;color:var(--text-muted);">{{ v.exit_time|date:"H:i" }}</span>
+            {% else %}
+              <span style="color:var(--text-muted);">—</span>
+            {% endif %}
+          </td>
+          <td class="td-mono" style="font-size:12px;">{{ v.duration }}</td>
+          <td>
+            {% if v.exit_time %}
+              <span class="badge badge-muted">Exited</span>
+            {% else %}
+              <span class="badge badge-green"><span class="badge-dot"></span>Inside</span>
+            {% endif %}
+          </td>
+          <td>
+            <div style="display:flex;gap:6px;">
+              <a href="{% url 'visitors:detail' v.pk %}" class="btn btn-outline btn-sm" data-tooltip="View">👁</a>
+              <a href="{% url 'visitors:edit' v.pk %}" class="btn btn-outline btn-sm" data-tooltip="Edit">✏️</a>
+              <a href="{% url 'visitors:delete' v.pk %}" class="btn btn-danger btn-sm" data-tooltip="Delete">🗑</a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-state-icon">🪪</div>
+    <h3>No visitor records</h3>
+    <p>{% if request.GET.q or request.GET.relation %}No records match your filters.{% else %}No visitors have been logged yet.{% endif %}</p>
+    <a href="{% url 'visitors:add' %}" class="btn btn-primary">+ Log First Visitor</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Fee #{{ fee.pk }}{% endblock %}
+{% block breadcrumb %}<a href="{% url 'fees:index' %}">Fees</a><span class="sep">/</span><span class="current">#{{ fee.pk }}</span>{% endblock %}
+
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;">
+  <div class="page-title">Fee Record #{{ fee.pk }}</div>
+  <div style="display:flex;gap:10px;">
+    <a href="{% url 'fees:edit' fee.pk %}" class="btn btn-outline">✏️ Edit</a>
+    <a href="{% url 'fees:delete' fee.pk %}" class="btn btn-danger">🗑 Delete</a>
+  </div>
+</div>
+
+<!-- Hero -->
+<div class="detail-hero">
+  <div class="detail-avatar" style="font-size:28px;">💰</div>
+  <div class="detail-meta">
+    <div class="detail-name">{{ fee.student.user.get_full_name|default:fee.student.user.username }}</div>
+    <div class="detail-subtitle">
+      {{ fee.get_fee_type_display }} · {{ fee.get_month_display }} {{ fee.year }}
+    </div>
+    <div class="detail-tags">
+      {% if fee.status == 'PAID' %}    <span class="badge badge-green"><span class="badge-dot"></span>Paid</span>
+      {% elif fee.status == 'OVERDUE' %}<span class="badge badge-red">Overdue</span>
+      {% elif fee.status == 'PENDING' %}<span class="badge badge-amber">Pending</span>
+      {% elif fee.status == 'PARTIAL' %}<span class="badge badge-orange">Partially Paid</span>
+      {% elif fee.status == 'WAIVED'  %}<span class="badge badge-muted">Waived</span>
+      {% endif %}
+      <span class="badge badge-blue">{{ fee.get_fee_type_display }}</span>
+    </div>
+  </div>
+</div>
+
+<!-- Amount Breakdown -->
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px;">
+  <div class="card" style="text-align:center;padding:20px;">
+    <div style="font-size:11px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:8px;">Total Due</div>
+    <div style="font-family:var(--font-mono);font-size:28px;font-weight:600;color:var(--text-primary);">{{ fee.amount }}</div>
+    <div style="font-size:11px;color:var(--text-muted);">PKR</div>
+  </div>
+  <div class="card" style="text-align:center;padding:20px;">
+    <div style="font-size:11px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:8px;">Paid Amount</div>
+    <div style="font-family:var(--font-mono);font-size:28px;font-weight:600;color:var(--green);">{{ fee.paid_amount }}</div>
+    <div style="font-size:11px;color:var(--text-muted);">PKR</div>
+  </div>
+  <div class="card" style="text-align:center;padding:20px;">
+    <div style="font-size:11px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:8px;">Remaining</div>
+    <div style="font-family:var(--font-mono);font-size:28px;font-weight:600;color:{% if fee.remaining_amount == 0 %}var(--green){% else %}var(--red){% endif %};">
+      {{ fee.remaining_amount }}
+    </div>
+    <div style="font-size:11px;color:var(--text-muted);">PKR</div>
+  </div>
+</div>
+
+<div class="detail-info-grid">
+  <div class="info-block">
+    <div class="info-label">Student</div>
+    <div class="info-value">
+      <a href="{% url 'students:detail' fee.student.pk %}" style="color:var(--amber);text-decoration:none;">
+        {{ fee.student.roll_number }}
+      </a>
+    </div>
+  </div>
+  <div class="info-block">
+    <div class="info-label">Fee Type</div>
+    <div class="info-value">{{ fee.get_fee_type_display }}</div>
+  </div>
+  <div class="info-block">
+    <div class="info-label">Period</div>
+    <div class="info-value text-mono">{{ fee.get_month_display }} {{ fee.year }}</div>
+  </div>
+  <div class="info-block">
+    <div class="info-label">Due Date</div>
+    <div class="info-value text-mono">{{ fee.due_date|date:"d M Y" }}</div>
+  </div>
+  <div class="info-block">
+    <div class="info-label">Payment Date</div>
+    <div class="info-value text-mono">{{ fee.payment_date|date:"d M Y"|default:"—" }}</div>
+  </div>
+  <div class="info-block">
+    <div class="info-label">Created On</div>
+    <div class="info-value text-mono">{{ fee.created_at|date:"d M Y" }}</div>
+  </div>
+</div>
+
+{% if fee.remarks %}
+<div class="card">
+  <div class="card-header"><div class="card-title">📝 Remarks</div></div>
+  <div class="card-body" style="color:var(--text-secondary);font-size:13.5px;line-height:1.7;">{{ fee.remarks }}</div>
+</div>
+{% endif %}
+{% endblock %}

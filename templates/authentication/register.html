@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register — Hostel Management System</title>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+<div class="auth-page">
+  <div class="auth-bg-pattern"></div>
+  <div class="auth-bg-glow"></div>
+
+  <div class="auth-card" style="max-width:480px;">
+    <div class="auth-card-header">
+      <div class="auth-logo">🏠</div>
+      <div class="auth-title">Create Account</div>
+      <div class="auth-subtitle">Set up your HMS access credentials</div>
+    </div>
+
+    <div class="auth-card-body">
+      {% if form.errors %}
+        <div class="alert alert-error">
+          <span>✕</span>
+          <span>Please fix the errors below and try again.</span>
+        </div>
+      {% endif %}
+
+      <form method="post">
+        {% csrf_token %}
+        <div class="form-grid">
+          {% for field in form %}
+            <div class="form-group {% if forloop.last %}form-full{% endif %}">
+              <label class="form-label">{{ field.label }}</label>
+              <input
+                type="{% if 'password' in field.html_name %}password{% else %}text{% endif %}"
+                name="{{ field.html_name }}"
+                class="form-control {% if field.errors %}error{% endif %}"
+                placeholder="{{ field.label }}"
+                value="{{ field.value|default:'' }}">
+              {% if field.errors %}
+                {% for error in field.errors %}
+                  <span class="form-error">{{ error }}</span>
+                {% endfor %}
+              {% endif %}
+              {% if field.help_text %}
+                <span class="form-hint">{{ field.help_text }}</span>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px;">
+          Create Account →
+        </button>
+      </form>
+
+      <p style="text-align:center;margin-top:20px;font-size:13px;color:var(--text-muted);">
+        Already have an account?
+        <a href="{% url 'auth:login' %}" style="color:var(--amber);text-decoration:none;">Sign in</a>
+      </p>
+    </div>
+  </div>
+</div>
+{% load static %}
+<script src="{% static 'js/main.js' %}"></script>
+</body>
+</html>

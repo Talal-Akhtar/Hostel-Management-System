@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block title %}{{ action }} Student{% endblock %}
+{% block breadcrumb %}<a href="{% url 'students:index' %}">Students</a><span class="sep">/</span><span class="current">{{ action }}</span>{% endblock %}
+
+{% block content %}
+<div style="max-width:760px;">
+  <div style="margin-bottom:24px;">
+    <div class="page-title">{{ action }} Student</div>
+    <div style="color:var(--text-muted);font-size:13px;margin-top:4px;">
+      {% if action == 'Add' %}Register a new student in the system{% else %}Update student information{% endif %}
+    </div>
+  </div>
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <!-- Account Info -->
+    <div class="card" style="margin-bottom:20px;">
+      <div class="card-header"><div class="card-title">👤 Account Information</div></div>
+      <div class="card-body">
+        <div class="form-section-title">Login Credentials</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">First Name</label>
+            <input type="text" name="first_name" class="form-control" value="{{ student.user.first_name|default:'' }}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Last Name</label>
+            <input type="text" name="last_name" class="form-control" value="{{ student.user.last_name|default:'' }}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Username <span class="required">*</span></label>
+            <input type="text" name="username" class="form-control" required value="{{ student.user.username|default:'' }}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" name="email" class="form-control" value="{{ student.user.email|default:'' }}">
+          </div>
+          {% if action == 'Add' %}
+          <div class="form-group">
+            <label class="form-label">Password <span class="required">*</span></label>
+            <input type="password" name="password1" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Confirm Password <span class="required">*</span></label>
+            <input type="password" name="password2" class="form-control" required>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Student Details -->
+    <div class="card" style="margin-bottom:20px;">
+      <div class="card-header"><div class="card-title">🎓 Student Details</div></div>
+      <div class="card-body">
+        <div class="form-section-title">Academic Information</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Roll Number <span class="required">*</span></label>
+            <input type="text" name="roll_number" class="form-control" required placeholder="e.g. CS-2021-001" value="{{ student.roll_number|default:'' }}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Department <span class="required">*</span></label>
+            <select name="department" class="form-control">
+              <option value="CS" {% if student.department == 'CS' %}selected{% endif %}>Computer Science</option>
+              <option value="EE" {% if student.department == 'EE' %}selected{% endif %}>Electrical Engineering</option>
+              <option value="ME" {% if student.department == 'ME' %}selected{% endif %}>Mechanical Engineering</option>
+              <option value="CE" {% if student.department == 'CE' %}selected{% endif %}>Civil Engineering</option>
+              <option value="BBA" {% if student.department == 'BBA' %}selected{% endif %}>Business Administration</option>
+              <option value="MED" {% if student.department == 'MED' %}selected{% endif %}>Medical</option>
+              <option value="LAW" {% if student.department == 'LAW' %}selected{% endif %}>Law</option>
+              <option value="OTHER" {% if student.department == 'OTHER' %}selected{% endif %}>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Phone Number <span class="required">*</span></label>
+            <input type="text" name="phone_number" class="form-control" placeholder="+92-300-1234567" value="{{ student.phone_number|default:'' }}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Room Assignment</label>
+            <select name="room" class="form-control">
+              <option value="">— No Room —</option>
+              {% for room in rooms %}
+                <option value="{{ room.pk }}" {% if student.room.pk == room.pk %}selected{% endif %}>
+                  Room {{ room.room_number }} ({{ room.get_room_type_display }}) — {{ room.occupancy_status }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div class="form-section-title" style="margin-top:8px;">Profile Photo</div>
+        <div class="form-group">
+          {% if student.profile_pic %}
+            <div style="margin-bottom:10px;">
+              <img src="{{ student.profile_pic.url }}" alt="Profile" id="profilePreview"
+                style="width:80px;height:80px;border-radius:var(--radius-sm);object-fit:cover;border:2px solid var(--border-light);">
+            </div>
+          {% else %}
+            <div id="profilePreviewWrapper" style="margin-bottom:10px;display:none;">
+              <img id="profilePreview" alt="Preview"
+                style="width:80px;height:80px;border-radius:var(--radius-sm);object-fit:cover;border:2px solid var(--border-light);">
+            </div>
+          {% endif %}
+          <input type="file" name="profile_pic" class="form-control" accept="image/*" data-preview="profilePreview"
+            style="padding:6px;">
+          <span class="form-hint">JPG, PNG, GIF — max 5MB</span>
+        </div>
+
+        <div class="form-section-title" style="margin-top:8px;">Status</div>
+        <div class="form-group">
+          <label class="form-check">
+            <input type="checkbox" name="is_active" class="form-check-input"
+              {% if action == 'Add' or student.is_active %}checked{% endif %}>
+            <span style="font-size:13.5px;">Currently residing in hostel</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Guardian Info -->
+    <div class="card" style="margin-bottom:24px;">
+      <div class="card-header"><div class="card-title">👨‍👩‍👦 Guardian / Contact</div></div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Guardian Name</label>
+            <input type="text" name="guardian_name" class="form-control" value="{{ student.guardian_name|default:'' }}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Guardian Phone</label>
+            <input type="text" name="guardian_phone" class="form-control" value="{{ student.guardian_phone|default:'' }}">
+          </div>
+          <div class="form-group form-full">
+            <label class="form-label">Permanent Address</label>
+            <textarea name="address" class="form-control" rows="3" placeholder="Full home address…">{{ student.address|default:'' }}</textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;">
+      <button type="submit" class="btn btn-primary">
+        {% if action == 'Add' %}✓ Add Student{% else %}✓ Save Changes{% endif %}
+      </button>
+      <a href="{% url 'students:index' %}" class="btn btn-outline">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

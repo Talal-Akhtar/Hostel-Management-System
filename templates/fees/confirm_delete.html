@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Delete Fee{% endblock %}
+{% block breadcrumb %}<a href="{% url 'fees:index' %}">Fees</a><span class="sep">/</span><span class="current">Delete</span>{% endblock %}
+{% block content %}
+<div style="max-width:480px;margin:40px auto;">
+  <div class="danger-zone">
+    <div style="font-size:40px;margin-bottom:12px;">⚠️</div>
+    <h3>Delete Fee Record</h3>
+    <p>Delete the <strong style="color:var(--text-primary);">{{ fee.get_fee_type_display }}</strong> fee for
+      <strong style="color:var(--text-primary);">{{ fee.student }}</strong> ({{ fee.get_month_display }} {{ fee.year }})?
+      This action cannot be undone.</p>
+    <div style="display:flex;gap:10px;justify-content:center;">
+      <form method="post">{% csrf_token %}<button type="submit" class="btn btn-danger">Yes, Delete</button></form>
+      <a href="{% url 'fees:index' %}" class="btn btn-outline">Cancel</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
