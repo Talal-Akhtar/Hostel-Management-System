@@ -1,5 +1,5 @@
 # 🏠 Hostel Management System
-**A Django-based backend for managing hostel operations.**
+A Django-based backend for managing hostel operations.
 
 ---
 
@@ -144,7 +144,7 @@ URL:      http://127.0.0.1:8000/admin/
 Username: admin
 Password: admin1234
 ```
-> **Change these in production!**
+> Change these in production!
 
 ---
 
@@ -163,13 +163,3 @@ Password: admin1234
 | `get_object_or_404` | Safe record fetching in views |
 | `messages` framework | Success/error flash messages |
 
----
-
-## ➡️ Next Steps
-
-1. Build HTML templates using Bootstrap 5
-2. Add `ModelForm`-based POST handling in views
-3. Add search/filter to list views
-4. Add pagination with `django.core.paginator`
-5. Add export-to-PDF for fee reports
-6. Deploy with Gunicorn + Nginx
