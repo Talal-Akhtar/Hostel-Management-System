@@ -1,4 +1,4 @@
-![Status](https://img.shields.io/badge/status-in%20progress-yellow)
+<img src="https://img.shields.io/badge/status-in%20progress-yellow" height="35">
 # 🏠 Hostel Management System
 A Django-based backend for managing hostel operations.
 
